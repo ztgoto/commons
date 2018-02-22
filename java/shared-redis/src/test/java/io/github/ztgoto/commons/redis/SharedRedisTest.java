@@ -46,18 +46,17 @@ public class SharedRedisTest {
 	public void testSharedSentinel() {
 		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
 
-
 		ShardedRedisConnectionFactory factory = new ShardedRedisConnectionFactory(config);
-		
+
 		factory.addMaster("master1");
 		factory.addMaster("master2");
-		
+
 		factory.addSentinel("192.168.4.83:26379");
 		factory.addSentinel("192.168.4.83:26380");
 		factory.addSentinel("192.168.4.83:26381");
-		
+
 		factory.init();
-		
+
 		try (RedisConnection conn = factory.getConnection();) {
 
 			for (int i = 0; i < 10; i++) {
@@ -74,4 +73,44 @@ public class SharedRedisTest {
 		factory.destroy();
 	}
 
+	public static void main(String[] args) {
+		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+
+		ShardedRedisConnectionFactory factory = new ShardedRedisConnectionFactory(config);
+
+		factory.addMaster("master1");
+		factory.addMaster("master2");
+
+		factory.addSentinel("192.168.4.83:26379");
+		factory.addSentinel("192.168.4.83:26380");
+		factory.addSentinel("192.168.4.83:26381");
+
+		factory.init();
+
+		int count = 0;
+
+		while (true) {
+			try {
+				System.out.println("--------------------------");
+				RedisConnection conn = factory.getConnection();
+
+				for (int i = 0; i < 10; i++) {
+					String key = "key" + i;
+					String value = "value" + i;
+					conn.setex(key, 30, value);
+
+					System.out.println(conn.get(key));
+				}
+
+				System.out.println(">>>>>" + (++count));
+				conn.close();
+				Thread.sleep(2000);
+				System.out.println("******************************");
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
 }

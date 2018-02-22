@@ -118,8 +118,17 @@ public class ShardedJedisSentinelPool extends Pool<ShardedJedis> {
     		currentHostMasters = masters;
     	}
     }
+    
+    
 
-    private boolean equals(List<HostAndPort> currentShardMasters, List<HostAndPort> shardMasters) {
+    @Override
+	public ShardedJedis getResource() {
+    	ShardedJedis jedis = super.getResource();
+        jedis.setDataSource(this);
+        return jedis;
+	}
+
+	private boolean equals(List<HostAndPort> currentShardMasters, List<HostAndPort> shardMasters) {
     	if (currentShardMasters != null && shardMasters != null) {
     		if (currentShardMasters.size() == shardMasters.size()) {
     			for (int i = 0; i < currentShardMasters.size(); i++) {
